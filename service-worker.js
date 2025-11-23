@@ -1,7 +1,7 @@
 const CACHE_NAME = 'wotrack-cache-v1';
 const FILES_TO_CACHE = [
   './',
-  './WoTrack.html',
+  './index.html',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png'
