@@ -272,22 +272,54 @@
       display: block;
     }
 
+    /* Weekly plan overlay */
+    #scheduleOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.98);
+      display: none;
+      flex-direction: column;
+      z-index: 30;
+    }
+
+    #scheduleOverlay.active {
+      display: flex;
+    }
+
+    #scheduleOverlayHeader {
+      padding: 0.9rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #scheduleOverlayHeader h2 {
+      margin: 0;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    #scheduleOverlayBody {
+      padding: 0.9rem 1.1rem 1.1rem;
+      overflow: auto;
+      flex: 1;
+    }
+
     .today-row {
       background: rgba(56,189,248,0.06);
     }
 
-    .hidden { display: none; }
-
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15,23,42,0.98);
-      backdrop-filter: blur(12px);
-      padding: 0.9rem;
-      z-index: 40;
-      display: flex;
-      flex-direction: column;
-      overflow: auto;
+    .chip {
+      display: inline-flex;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,1);
+      border: 1px solid rgba(148,163,184,0.4);
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
 
     @media (max-width: 600px) {
@@ -406,7 +438,7 @@
     </div>
   </section>
 
-  <!-- RIGHT: analytics & graphs -->
+  <!-- RIGHT: analytics, graphs, schedule snippet -->
   <section class="card">
     <h2>Overall Progress <span class="badge">Analytics</span></h2>
 
@@ -449,19 +481,17 @@
 
     <hr style="border-color:rgba(31,41,55,0.9); margin:0.7rem 0;">
 
-    <h2>Per-Exercise 1RM <span class="badge">Best Estimates</span></h2>
-    <div class="scroll" style="max-height:130px;">
-      <table>
-        <thead>
-          <tr>
-            <th>Exercise</th>
-            <th class="text-center">Best 1RM</th>
-            <th class="text-center">Best weight</th>
-            <th class="text-right">Total volume</th>
-          </tr>
-        </thead>
-        <tbody id="exerciseStatsBody"></tbody>
-      </table>
+    <!-- Per-Exercise 1RM panel removed -->
+
+    <hr style="border-color:rgba(31,41,55,0.9); margin:0.7rem 0;">
+
+    <h2>Schedule <span class="badge">Today</span></h2>
+    <p class="helper">Today’s plan from your weekly schedule.</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <div id="todayScheduleSummary" class="muted">
+        No plan set for today yet.
+      </div>
+      <button id="openScheduleBtn" type="button">Plan</button>
     </div>
 
     <hr style="border-color:rgba(31,41,55,0.9); margin:0.7rem 0;">
@@ -484,40 +514,22 @@
       </table>
     </div>
   </section>
-
-  <!-- HOME: today's schedule only -->
-  <section class="card">
-    <h2>Schedule <span class="badge">Plan</span></h2>
-    <p class="helper">Quick view of today's plan. Tap below to edit the full week.</p>
-
-    <div class="stat" style="margin-top:0.3rem;">
-      <div class="stat-label" id="scheduleTodayLabel">Today</div>
-      <div class="stat-value" id="scheduleTodayTitle">Rest</div>
-      <div class="stat-sub" id="scheduleTodayNotes">No notes for today.</div>
-    </div>
-
-    <div style="margin-top:0.6rem; display:flex; justify-content:space-between; align-items:center; gap:0.4rem;">
-      <button id="openScheduleBtn" type="button" class="secondary">View weekly plan</button>
-      <span class="muted">One plan per day · Local only</span>
-    </div>
-  </section>
 </main>
 
-<!-- FULL-SCREEN WEEKLY PLAN -->
-<div id="scheduleOverlay" class="overlay hidden">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-    <h2 style="margin:0; font-size:1rem; display:flex; align-items:center; gap:0.4rem;">
+<!-- WEEKLY PLAN OVERLAY -->
+<div id="scheduleOverlay">
+  <div id="scheduleOverlayHeader">
+    <h2>
       <span class="logo-dot"></span>
       Weekly Plan
     </h2>
     <button id="closeScheduleBtn" type="button" class="secondary">Close</button>
   </div>
+  <div id="scheduleOverlayBody">
+    <p class="helper">Edit your weekly plan. One plan per day, shown on the home screen for today.</p>
 
-  <p class="helper" style="margin-bottom:0.5rem;">Edit your weekly plan. One plan per day, shown on the home screen for today.</p>
-
-  <section class="card" style="margin-bottom:0.6rem;">
-    <h2 style="margin-bottom:0.4rem;">Edit day</h2>
-    <div class="row" style="margin-bottom:0.4rem;">
+    <h3 style="font-size:0.9rem; margin-top:0.2rem;">Edit day</h3>
+    <div class="row" style="margin-bottom:0.4rem; margin-top:0.25rem;">
       <div>
         <label for="scheduleDay">Day</label>
         <select id="scheduleDay">
@@ -541,15 +553,15 @@
       <textarea id="scheduleNotes" placeholder="e.g. Heavy bench focus, accessories, cardio, etc."></textarea>
     </div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.4rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.4rem; margin-bottom:0.8rem;">
       <button id="addScheduleBtn" type="button">Save day plan</button>
       <span class="muted">Saving replaces that day's plan.</span>
     </div>
-  </section>
 
-  <section class="card" style="flex:1; min-height:0;">
-    <h2 style="margin-bottom:0.4rem;">Full week</h2>
-    <div class="scroll" style="max-height:none; height:100%;">
+    <h3 style="font-size:0.9rem; margin-top:0.1rem;">Full week</h3>
+    <p class="helper">Week starts on today for easier planning.</p>
+
+    <div class="scroll" style="max-height:260px;">
       <table>
         <thead>
           <tr>
@@ -561,7 +573,7 @@
         <tbody id="scheduleBody"></tbody>
       </table>
     </div>
-  </section>
+  </div>
 </div>
 
 <script>
@@ -594,10 +606,19 @@
     return new Date().getDay(); // 0 = Sun ... 6 = Sat
   }
 
+  function parseLocalDate(iso) {
+    if (!iso) return null;
+    const parts = iso.split('-').map(Number);
+    if (parts.length !== 3) return null;
+    const [y, m, d] = parts;
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
+  }
+
   function formatDate(iso) {
     if (!iso) return '';
-    const d = new Date(iso);
-    if (isNaN(d)) return iso;
+    const d = parseLocalDate(iso);
+    if (!d || isNaN(d)) return iso;
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
@@ -651,7 +672,6 @@
   const bwTrendEl = document.getElementById('bwTrend');
   const bwTrendDetailEl = document.getElementById('bwTrendDetail');
 
-  const exerciseStatsBody = document.getElementById('exerciseStatsBody');
   const recentLogsBody = document.getElementById('recentLogsBody');
 
   // schedule DOM
@@ -660,13 +680,10 @@
   const scheduleNotesInput = document.getElementById('scheduleNotes');
   const addScheduleBtn = document.getElementById('addScheduleBtn');
   const scheduleBody = document.getElementById('scheduleBody');
-
-  const scheduleTodayLabel = document.getElementById('scheduleTodayLabel');
-  const scheduleTodayTitle = document.getElementById('scheduleTodayTitle');
-  const scheduleTodayNotes = document.getElementById('scheduleTodayNotes');
+  const todayScheduleSummary = document.getElementById('todayScheduleSummary');
   const openScheduleBtn = document.getElementById('openScheduleBtn');
-  const closeScheduleBtn = document.getElementById('closeScheduleBtn');
   const scheduleOverlay = document.getElementById('scheduleOverlay');
+  const closeScheduleBtn = document.getElementById('closeScheduleBtn');
 
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -675,8 +692,8 @@
     const logs = state.logs.filter(l => l.exercise === name);
     if (!logs.length) return null;
     return logs.reduce((best, l) => {
-      const dBest = best.date ? new Date(best.date) : new Date(0);
-      const dCurr = l.date ? new Date(l.date) : new Date(0);
+      const dBest = best.date ? parseLocalDate(best.date) : new Date(0);
+      const dCurr = l.date ? parseLocalDate(l.date) : new Date(0);
       if (dCurr > dBest) return l;
       if (dCurr < dBest) return best;
       const cBest = best.createdAt || 0;
@@ -753,7 +770,7 @@
     let prev7 = 0;
     logs.forEach(l => {
       if (!l.date) return;
-      const d = new Date(l.date);
+      const d = parseLocalDate(l.date);
       if (isNaN(d)) return;
       if (d > startCurrent && d <= now) {
         current7 += l.volume || 0;
@@ -783,34 +800,6 @@
     }
   }
 
-  function renderExerciseStats() {
-    exerciseStatsBody.innerHTML = '';
-    if (!state.exercises.length) return;
-
-    const grouped = {};
-    state.logs.forEach(l => {
-      if (!grouped[l.exercise]) grouped[l.exercise] = [];
-      grouped[l.exercise].push(l);
-    });
-
-    state.exercises.slice().sort((a, b) => a.localeCompare(b)).forEach(name => {
-      const logs = grouped[name] || [];
-      if (!logs.length) return;
-      const best1RM = logs.reduce((max, l) => Math.max(max, l.oneRM || 0), 0);
-      const bestWeight = logs.reduce((max, l) => Math.max(max, Number(l.weight) || 0), 0);
-      const totalVolume = logs.reduce((sum, l) => sum + (l.volume || 0), 0);
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${name}</td>
-        <td class="text-center">${best1RM ? Math.round(best1RM) : '—'}</td>
-        <td class="text-center">${bestWeight || '—'}</td>
-        <td class="text-right">${Math.round(totalVolume).toLocaleString()}</td>
-      `;
-      exerciseStatsBody.appendChild(tr);
-    });
-  }
-
   function renderRecentLogs() {
     recentLogsBody.innerHTML = '';
     const logs = state.logs
@@ -834,7 +823,7 @@
   }
 
   function renderBodyweight() {
-    const bws = state.bodyweights.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+    const bws = state.bodyweights.slice().sort((a, b) => parseLocalDate(a.date) - parseLocalDate(b.date));
     bodyweightListBody.innerHTML = '';
     if (!bws.length) {
       bwLatestSpan.textContent = '—';
@@ -864,7 +853,7 @@
     let prevVals = [];
 
     bws.forEach(bw => {
-      const d = new Date(bw.date);
+      const d = parseLocalDate(bw.date);
       if (isNaN(d)) return;
       if (d > startCurrent && d <= now) {
         currentVals.push(Number(bw.weight) || 0);
@@ -951,7 +940,7 @@
     const volumeValues = recentVolumeDates.map(d => volumeByDate[d]);
     drawLineGraph('volumeGraph', volumeValues);
 
-    const sortedBw = state.bodyweights.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+    const sortedBw = state.bodyweights.slice().sort((a, b) => parseLocalDate(a.date) - parseLocalDate(b.date));
     const recentBw = sortedBw.slice(-30);
     const bwValues = recentBw.map(b => Number(b.weight) || 0);
     drawLineGraph('bodyweightGraph', bwValues);
@@ -973,31 +962,36 @@
     scheduleBody.innerHTML = '';
     const todayIdx = getTodayDayIndex();
 
-    let todayEntry = null;
-
+    // Rotate week so it starts on today
+    const order = [];
     for (let i = 0; i < 7; i++) {
-      const entry = state.schedule.find(e => e.day === i);
-      if (i === todayIdx) todayEntry = entry || null;
+      order.push((todayIdx + i) % 7);
+    }
 
+    order.forEach(idx => {
+      const entry = state.schedule.find(e => e.day === idx);
       const tr = document.createElement('tr');
-      if (i === todayIdx) tr.classList.add('today-row');
+      if (idx === todayIdx) tr.classList.add('today-row');
       tr.innerHTML = `
-        <td>${dayNames[i]}${i === todayIdx ? ' (today)' : ''}</td>
+        <td>${dayNames[idx]}${idx === todayIdx ? ' (today)' : ''}</td>
         <td>${entry ? entry.title : '—'}</td>
         <td>${entry && entry.notes ? entry.notes : ''}</td>
       `;
       scheduleBody.appendChild(tr);
+    });
+
+    // Update today's summary on home
+    const todayEntry = state.schedule.find(e => e.day === todayIdx);
+    if (todayEntry) {
+      todayScheduleSummary.textContent =
+        `${dayNames[todayIdx]}: ${todayEntry.title}` +
+        (todayEntry.notes ? ` — ${todayEntry.notes}` : '');
+    } else {
+      todayScheduleSummary.textContent = 'No plan set for today yet.';
     }
 
-    // Update home card for today
-    const label = dayNames[todayIdx] + ' (today)';
-    const title = todayEntry ? todayEntry.title : 'Rest';
-    const notes = todayEntry && todayEntry.notes
-      ? todayEntry.notes
-      : 'No notes for today.';
-    scheduleTodayLabel.textContent = label;
-    scheduleTodayTitle.textContent = title;
-    scheduleTodayNotes.textContent = notes;
+    // Default select to today if not set
+    scheduleDaySelect.value = String(todayIdx);
   }
 
   // Event handlers
@@ -1055,7 +1049,6 @@
 
     renderVolumePreview();
     renderOverallStats();
-    renderExerciseStats();
     renderRecentLogs();
     renderGraphs();
   });
@@ -1088,7 +1081,6 @@
     renderExerciseSelect();
     renderVolumePreview();
     renderOverallStats();
-    renderExerciseStats();
     renderRecentLogs();
     renderBodyweight();
     renderGraphs();
@@ -1114,13 +1106,11 @@
   });
 
   openScheduleBtn.addEventListener('click', () => {
-    // when opening, default selector to today
-    scheduleDaySelect.value = String(getTodayDayIndex());
-    scheduleOverlay.classList.remove('hidden');
+    scheduleOverlay.classList.add('active');
   });
 
   closeScheduleBtn.addEventListener('click', () => {
-    scheduleOverlay.classList.add('hidden');
+    scheduleOverlay.classList.remove('active');
   });
 
   function init() {
@@ -1132,7 +1122,6 @@
     populateLastLogForSelectedExercise();
     renderVolumePreview();
     renderOverallStats();
-    renderExerciseStats();
     renderRecentLogs();
     renderBodyweight();
     renderGraphs();
