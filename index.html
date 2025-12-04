@@ -276,6 +276,20 @@
       background: rgba(56,189,248,0.06);
     }
 
+    .hidden { display: none; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.98);
+      backdrop-filter: blur(12px);
+      padding: 0.9rem;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
+    }
+
     @media (max-width: 600px) {
       header h1 { font-size: 1rem; }
       .subtitle { display: none; }
@@ -471,11 +485,38 @@
     </div>
   </section>
 
-  <!-- NEW: Weekly Schedule -->
+  <!-- HOME: today's schedule only -->
   <section class="card">
-    <h2>Weekly Schedule <span class="badge">Plan</span></h2>
-    <p class="helper">Set a simple weekly plan so you know what each day is for (push, pull, legs, cardio, rest).</p>
+    <h2>Schedule <span class="badge">Plan</span></h2>
+    <p class="helper">Quick view of today's plan. Tap below to edit the full week.</p>
 
+    <div class="stat" style="margin-top:0.3rem;">
+      <div class="stat-label" id="scheduleTodayLabel">Today</div>
+      <div class="stat-value" id="scheduleTodayTitle">Rest</div>
+      <div class="stat-sub" id="scheduleTodayNotes">No notes for today.</div>
+    </div>
+
+    <div style="margin-top:0.6rem; display:flex; justify-content:space-between; align-items:center; gap:0.4rem;">
+      <button id="openScheduleBtn" type="button" class="secondary">View weekly plan</button>
+      <span class="muted">One plan per day · Local only</span>
+    </div>
+  </section>
+</main>
+
+<!-- FULL-SCREEN WEEKLY PLAN -->
+<div id="scheduleOverlay" class="overlay hidden">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+    <h2 style="margin:0; font-size:1rem; display:flex; align-items:center; gap:0.4rem;">
+      <span class="logo-dot"></span>
+      Weekly Plan
+    </h2>
+    <button id="closeScheduleBtn" type="button" class="secondary">Close</button>
+  </div>
+
+  <p class="helper" style="margin-bottom:0.5rem;">Edit your weekly plan. One plan per day, shown on the home screen for today.</p>
+
+  <section class="card" style="margin-bottom:0.6rem;">
+    <h2 style="margin-bottom:0.4rem;">Edit day</h2>
     <div class="row" style="margin-bottom:0.4rem;">
       <div>
         <label for="scheduleDay">Day</label>
@@ -500,12 +541,15 @@
       <textarea id="scheduleNotes" placeholder="e.g. Heavy bench focus, accessories, cardio, etc."></textarea>
     </div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.4rem; margin-bottom:0.6rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.4rem;">
       <button id="addScheduleBtn" type="button">Save day plan</button>
-      <span class="muted">One plan per day. Editing will replace that day's plan.</span>
+      <span class="muted">Saving replaces that day's plan.</span>
     </div>
+  </section>
 
-    <div class="scroll" style="max-height:180px;">
+  <section class="card" style="flex:1; min-height:0;">
+    <h2 style="margin-bottom:0.4rem;">Full week</h2>
+    <div class="scroll" style="max-height:none; height:100%;">
       <table>
         <thead>
           <tr>
@@ -518,7 +562,7 @@
       </table>
     </div>
   </section>
-</main>
+</div>
 
 <script>
   const STORAGE_KEY = 'workoutTracker_full_v3';
@@ -616,6 +660,13 @@
   const scheduleNotesInput = document.getElementById('scheduleNotes');
   const addScheduleBtn = document.getElementById('addScheduleBtn');
   const scheduleBody = document.getElementById('scheduleBody');
+
+  const scheduleTodayLabel = document.getElementById('scheduleTodayLabel');
+  const scheduleTodayTitle = document.getElementById('scheduleTodayTitle');
+  const scheduleTodayNotes = document.getElementById('scheduleTodayNotes');
+  const openScheduleBtn = document.getElementById('openScheduleBtn');
+  const closeScheduleBtn = document.getElementById('closeScheduleBtn');
+  const scheduleOverlay = document.getElementById('scheduleOverlay');
 
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -922,8 +973,12 @@
     scheduleBody.innerHTML = '';
     const todayIdx = getTodayDayIndex();
 
+    let todayEntry = null;
+
     for (let i = 0; i < 7; i++) {
       const entry = state.schedule.find(e => e.day === i);
+      if (i === todayIdx) todayEntry = entry || null;
+
       const tr = document.createElement('tr');
       if (i === todayIdx) tr.classList.add('today-row');
       tr.innerHTML = `
@@ -934,10 +989,15 @@
       scheduleBody.appendChild(tr);
     }
 
-    // Default the select to today if nothing chosen
-    if (!scheduleDaySelect.value) {
-      scheduleDaySelect.value = String(todayIdx);
-    }
+    // Update home card for today
+    const label = dayNames[todayIdx] + ' (today)';
+    const title = todayEntry ? todayEntry.title : 'Rest';
+    const notes = todayEntry && todayEntry.notes
+      ? todayEntry.notes
+      : 'No notes for today.';
+    scheduleTodayLabel.textContent = label;
+    scheduleTodayTitle.textContent = title;
+    scheduleTodayNotes.textContent = notes;
   }
 
   // Event handlers
@@ -1051,6 +1111,16 @@
     upsertScheduleEntry(dayIndex, title, notes);
     saveState();
     renderSchedule();
+  });
+
+  openScheduleBtn.addEventListener('click', () => {
+    // when opening, default selector to today
+    scheduleDaySelect.value = String(getTodayDayIndex());
+    scheduleOverlay.classList.remove('hidden');
+  });
+
+  closeScheduleBtn.addEventListener('click', () => {
+    scheduleOverlay.classList.add('hidden');
   });
 
   function init() {
